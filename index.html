@@ -3982,7 +3982,12 @@ let _fbApp = null;
 let _fbDb  = null;
 let _fbUser = null;
 let _fbAutoSync = lsGet('fb_auto_sync', false);
-let _fbConfig   = lsGet('fb_config', null);
+let _fbConfig = lsGet('fb_config', {
+  apiKey: "AIzaSyAhpTRWpsifAUXadNkkeQipcNHSUMVyhjg",
+  authDomain: "yekase-73579.firebaseapp.com",
+  databaseURL: "https://yekase-73579-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "yekase-73579"
+});
 
 function fbLoginToggle() {
   const m = document.getElementById('fb-modal');
@@ -3993,11 +3998,11 @@ function fbLoginToggle() {
   } else {
     document.getElementById('fb-logged-out').style.display = 'block';
     document.getElementById('fb-logged-in').style.display  = 'none';
-    // If config saved, pre-fill
-    if (_fbConfig) {
-      document.getElementById('fb-config-input').value = JSON.stringify(_fbConfig, null, 2);
-      document.getElementById('fb-google-section').style.display = 'block';
-    }
+    // Config always embedded - show Google button directly
+    document.getElementById('fb-config-input').value = JSON.stringify(_fbConfig, null, 2);
+    document.getElementById('fb-google-section').style.display = 'block';
+    // Auto-init if not yet initialized
+    if (!_fbApp) fbInit();
   }
   document.getElementById('fb-auto-sync').checked = _fbAutoSync;
 }
