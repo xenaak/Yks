@@ -785,14 +785,37 @@
     <</p>
     <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px">
       <div>
-        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">KONU</label>
-        <select id="trend-konu-sel" onchange="drawTrendChart()" style="margin:0;min-width:180px"></select>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">DERS</label>
+        <select id="trend-ders-sel" onchange="trendDersChange()" style="margin:0;min-width:160px">
+          <option value="">— Ders seç —</option>
+          <option value="tyt|Türkçe">TYT Türkçe</option>
+          <option value="tyt|Matematik">TYT Matematik</option>
+          <option value="tyt|Geometri">TYT Geometri</option>
+          <option value="tyt|Tarih">TYT Tarih</option>
+          <option value="tyt|Coğrafya">TYT Coğrafya</option>
+          <option value="tyt|Fizik">TYT Fizik</option>
+          <option value="tyt|Kimya">TYT Kimya</option>
+          <option value="tyt|Biyoloji">TYT Biyoloji</option>
+          <option value="tyt|Felsefe">TYT Felsefe</option>
+          <option value="tyt|Din Kültürü">TYT Din Kültürü</option>
+          <option value="ayt_mat|Matematik">AYT Matematik</option>
+          <option value="ayt_mat|Geometri">AYT Geometri</option>
+          <option value="ayt_fen|Fizik">AYT Fizik</option>
+          <option value="ayt_fen|Kimya">AYT Kimya</option>
+          <option value="ayt_fen|Biyoloji">AYT Biyoloji</option>
+        </select>
       </div>
       <div>
-        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">GÖSTERİM</label>
-        <select id="trend-mode" onchange="drawTrendChart()" style="margin:0">
-          <option value="yanlis" selected>Yanlış Sayısı</option>
-          <option value="pct">Başarı %</option>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">KONU</label>
+        <select id="trend-konu-sel" onchange="drawTrendChart()" style="margin:0;min-width:180px">
+          <option value="">— Önce ders seç —</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">SIRA</label>
+        <select id="trend-siralama" onchange="drawTrendChart()" style="margin:0">
+          <option value="azalan">Azalan (çok→az)</option>
+          <option value="artan">Artan (az→çok)</option>
         </select>
       </div>
     </div>
@@ -1487,13 +1510,18 @@ function buildTopicForms() {
     Object.entries(TOPICS[key]).forEach(([cat, topics]) => {
       h += `<div class="section-title">${cat}</div>`;
       h += `<div style="overflow-x:auto"><table><thead><tr>
-        <th>Konu</th><th>D</th><th>Y</th><th>B</th><th>Net</th><th>%</th><th style="min-width:150px">Deneme</th><th style="min-width:120px">Not</th>
+        <th style="min-width:140px">Konu</th>
+        <th style="width:70px">Yanlış</th>
+        <th style="width:70px">Boş</th>
+        <th style="width:50px">Net</th>
+        <th style="min-width:160px">Deneme</th>
+        <th style="min-width:110px">Not</th>
       </tr></thead><tbody>`;
       topics.forEach(t => {
         const id = key + '_' + t.replace(/[^a-zA-Z0-9]/g,'_');
         const kaz = KAZANIMLAR[t] || [];
-        h += `<tr>
-          <td style="min-width:120px">
+        h += `<tr id="${id}_row">
+          <td style="min-width:140px">
             <b>${t}</b>
             ${kaz.length ? `<div id="${id}_kaz_wrap" style="display:none;margin-top:6px">
               <div style="font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:4px">YANLIŞ KAZANIMLAR:</div>
@@ -1501,21 +1529,19 @@ function buildTopicForms() {
                 ${kaz.map(k => {
                   const kid = id + '_kaz_' + k.replace(/[^a-zA-Z0-9]/g,'_');
                   return `<button type="button" id="${kid}" onclick="toggleKazanim('${kid}')"
-                    style="font-size:10px;padding:2px 7px;border-radius:12px;border:1px solid #c8c4ff;background:#eeeeff;color:#4a3fcc;cursor:pointer;transition:all 0.15s;white-space:nowrap;font-weight:600"
+                    style="font-size:10px;padding:2px 7px;border-radius:12px;border:1px solid #c8c4ff;background:transparent;color:#a09fff;cursor:pointer;transition:all 0.15s;white-space:nowrap"
                     data-active="0">${k}</button>`;
                 }).join('')}
               </div>
             </div>` : ''}
           </td>
-          <td><input type="number" id="${id}_d" min="0" placeholder="0" style="width:64px;margin:0;padding:6px 8px;font-size:12px" oninput="updateTopicRow('${id}')"></td>
-          <td><input type="number" id="${id}_y" min="0" placeholder="0" style="width:64px;margin:0;padding:6px 8px;font-size:12px" oninput="updateTopicRow('${id}')"></td>
-          <td><input type="number" id="${id}_b" min="0" placeholder="0" style="width:64px;margin:0;padding:6px 8px;font-size:12px" oninput="updateTopicRow('${id}')"></td>
-          <td><span id="${id}_net" class="net-tag" style="font-size:12px">0</span></td>
-          <td><span id="${id}_pct" style="font-size:12px;color:var(--muted)">—</span></td>
+          <td><input type="number" id="${id}_y" min="0" placeholder="0" style="width:60px;margin:0;padding:6px 8px;font-size:13px;text-align:center" oninput="updateTopicRow('${id}')"></td>
+          <td><input type="number" id="${id}_b" min="0" placeholder="0" style="width:60px;margin:0;padding:6px 8px;font-size:13px;text-align:center" oninput="updateTopicRow('${id}')"></td>
+          <td><span id="${id}_net" style="font-size:12px;color:var(--muted)">—</span></td>
           <td>
             <select id="${id}_den" onchange="saveTopicMeta('${id}')" style="margin:0;font-size:11px;padding:4px 6px;width:100%">
-              <option value="">— Deneme seç —</option>
-              ${[...denemeler.filter(d=>d.type==='TYT'||d.type==='AYT'),...lsGet('yks_brans',[])].map(d=>`<option value="${d.name||d.ad}">${d.type||d.ders||''} — ${d.name||d.ad}</option>`).join('')}
+              <option value="">— seç —</option>
+              ${[...denemeler,...lsGet('yks_brans',[])].map(d=>'<option value="'+(d.name||d.ad)+'">'+(d.type||d.ders||'')+' — '+(d.name||d.ad)+'</option>').join('')}
             </select>
           </td>
           <td><input type="text" id="${id}_not" placeholder="Not..." oninput="saveTopicMeta('${id}')" style="margin:0;font-size:11px;padding:4px 6px;width:100%"></td>
@@ -1539,17 +1565,22 @@ function toggleKazanim(kid) {
 }
 
 function updateTopicRow(id) {
-  const d = parseFloat(document.getElementById(id+'_d').value)||0;
-  const y = parseFloat(document.getElementById(id+'_y').value)||0;
-  const b = parseFloat(document.getElementById(id+'_b').value)||0;
-  const n = Math.max(0, d - y/4);
-  const total = d + y + b;
-  const pct = total > 0 ? Math.round((d/total)*100) : 0;
-  document.getElementById(id+'_net').textContent = n.toFixed(2);
-  document.getElementById(id+'_net').className = 'net-tag ' + (n < 1 ? 'net-neg' : n >= 3 ? 'net-pos' : '');
-  document.getElementById(id+'_pct').textContent = total > 0 ? pct + '%' : '—';
-  document.getElementById(id+'_pct').style.color = pct < 40 ? 'var(--danger)' : pct >= 70 ? 'var(--success)' : 'var(--warn)';
-  // Kazanım chip'lerini Y > 0 ise göster
+  const y = parseFloat(document.getElementById(id+'_y')?.value)||0;
+  const b = parseFloat(document.getElementById(id+'_b')?.value)||0;
+  const netEl = document.getElementById(id+'_net');
+  if (netEl) {
+    if (y === 0 && b === 0) {
+      netEl.textContent = '—';
+      netEl.style.color = 'var(--muted)';
+    } else {
+      netEl.textContent = y + 'Y / ' + b + 'B';
+      netEl.style.color = y > 5 ? 'var(--danger)' : y > 2 ? 'var(--warn)' : 'var(--success)';
+    }
+  }
+  // Row highlight
+  const row = document.getElementById(id+'_row');
+  if (row) row.style.background = (y > 0 || b > 0) ? 'rgba(255,77,77,0.06)' : '';
+  // Show kazanim chips when y > 0
   const wrap = document.getElementById(id+'_kaz_wrap');
   if (wrap) wrap.style.display = y > 0 ? 'block' : 'none';
   saveTopics();
@@ -2333,126 +2364,135 @@ function drawBarChart(data) {
 }
 
 function populateTrendDropdown() {
-  const data = lsGet('yks_topics_data', {});
-  const sel = document.getElementById('trend-konu-sel');
-  if (!sel) return;
-  const prev = sel.value;
-  // Build options from TOPICS categories
-  const options = [['','— Ders seç —']];
-  Object.entries(TOPICS).forEach(([key, cats]) => {
-    const label = key === 'tyt' ? 'TYT' : key === 'ayt_mat' ? 'AYT Matematik-Geometri' : 'AYT Fen';
-    Object.entries(cats).forEach(([cat, topics]) => {
-      const hasData = topics.some(t => {
-        const id = key + '_' + t.replace(/[^a-zA-Z0-9]/g,'_');
-        return data[id] && (data[id].y || data[id].d || data[id].b);
-      });
-      options.push([key+'|'+cat, label + ' › ' + cat + (hasData ? ' ✦' : '')]);
-    });
-  });
-  sel.innerHTML = options.map(([v,l]) => `<option value="${v}">${l}</option>`).join('');
-  if (prev) sel.value = prev;
+  // no-op, trend-ders-sel is static HTML
+}
+
+function trendDersChange() {
+  const dersSel = document.getElementById('trend-ders-sel');
+  const konuSel = document.getElementById('trend-konu-sel');
+  if (!dersSel || !konuSel) return;
+  const val = dersSel.value;
+  if (!val) { konuSel.innerHTML = '<option value="">— Önce ders seç —</option>'; drawTrendChart(); return; }
+  const [key, cat] = val.split('|');
+  const topics = TOPICS[key]?.[cat] || [];
+  const kaz = topics.flatMap(t => (KAZANIMLAR[t]||[]).map(k => ({ label: t + ' › ' + k, id: key+'_'+t.replace(/[^a-zA-Z0-9]/g,'_')+'_kaz_'+k.replace(/[^a-zA-Z0-9]/g,'_'), type:'kaz', parent:t, key })));
+  konuSel.innerHTML = '<option value="ALL">📊 Tüm Konular</option>' +
+    topics.map(t => '<option value="KONU|'+key+'|'+t+'">'+t+'</option>').join('') +
+    (kaz.length ? '<optgroup label="── Kazanımlar ──">' + kaz.map(k=>'<option value="KAZ|'+k.key+'|'+k.parent+'|'+k.label.split(' › ')[1]+'">↳ '+k.label+'</option>').join('') + '</optgroup>' : '');
+  konuSel.value = 'ALL';
+  drawTrendChart();
 }
 
 function drawTrendChart() {
   try {
-    const sel    = document.getElementById('trend-konu-sel');
-    const noData = document.getElementById('trend-no-data');
-    const canvas = document.getElementById('trendChart');
-    if (!sel || !canvas) return;
+    const dersSel  = document.getElementById('trend-ders-sel');
+    const konuSel  = document.getElementById('trend-konu-sel');
+    const siraSel  = document.getElementById('trend-siralama');
+    const noData   = document.getElementById('trend-no-data');
+    const canvas   = document.getElementById('trendChart');
+    if (!canvas || !dersSel) return;
 
-    const val = sel.value;
-    if (!val) {
-      if (noData) noData.style.display = 'block';
-      canvas.style.display = 'none';
-      return;
+    const dersVal  = dersSel?.value || '';
+    const konuVal  = konuSel?.value || '';
+    const sira     = siraSel?.value || 'azalan';
+
+    if (!dersVal || !konuVal) {
+      if (noData) { noData.style.display='block'; noData.textContent='Ders ve konu seçin.'; }
+      canvas.style.display='none'; return;
     }
 
-    const [topicKey, catName] = val.split('|');
-    const cats = TOPICS[topicKey];
-    if (!cats || !cats[catName]) {
-      if (noData) noData.style.display = 'block';
-      canvas.style.display = 'none';
-      return;
+    const [key, cat] = dersVal.split('|');
+    const topicList  = TOPICS[key]?.[cat] || [];
+    const storedData = lsGet('yks_topics_data', {});
+
+    let rows = [];
+
+    if (konuVal === 'ALL') {
+      // All topics in this ders
+      rows = topicList.map(t => {
+        const id = key + '_' + t.replace(/[^a-zA-Z0-9]/g,'_');
+        const saved = storedData[id] || {};
+        const y = parseFloat(saved.y)||0, b = parseFloat(saved.b)||0;
+        return { label: t, y, b };
+      });
+    } else if (konuVal.startsWith('KONU|')) {
+      // Single topic → show its kazanımlar
+      const [,k,t] = konuVal.split('|');
+      const kaz = KAZANIMLAR[t] || [];
+      const id  = k + '_' + t.replace(/[^a-zA-Z0-9]/g,'_');
+      rows = kaz.map(kazName => {
+        const kid = id + '_kaz_' + kazName.replace(/[^a-zA-Z0-9]/g,'_');
+        const el  = document.getElementById(kid);
+        const active = el ? el.getAttribute('data-active')==='1' : false;
+        return { label: kazName, y: active ? 1 : 0, b: 0, isKaz: true };
+      });
+      if (!rows.length) rows = [{ label: t + ' (kazanım yok)', y: 0, b: 0 }];
+    } else if (konuVal.startsWith('KAZ|')) {
+      const [,k,parentTopic,kazName] = konuVal.split('|');
+      const id  = k + '_' + parentTopic.replace(/[^a-zA-Z0-9]/g,'_');
+      const saved = storedData[id] || {};
+      const y = parseFloat(saved.y)||0, b = parseFloat(saved.b)||0;
+      rows = [{ label: parentTopic + ' › ' + kazName, y, b }];
     }
 
-    const topicList = cats[catName];
-    const data = lsGet('yks_topics_data', {});
+    // Sort
+    rows = rows.slice().sort((a,b2) => sira==='azalan' ? b2.y - a.y : a.y - b2.y);
 
-    // Build yanlış data per topic
-    const rows = topicList.map(t => {
-      const id = topicKey + '_' + t.replace(/[^a-zA-Z0-9]/g,'_');
-      const saved = data[id] || {};
-      const y = parseFloat(saved.y) || 0;
-      const d = parseFloat(saved.d) || 0;
-      const b = parseFloat(saved.b) || 0;
-      return { name: t, y, d, b, net: Math.max(0, d - y/4) };
-    }).sort((a,b) => b.y - a.y);
-
-    const hasAny = rows.some(r => r.y > 0 || r.d > 0);
+    const hasAny = rows.some(r => r.y > 0 || r.b > 0);
     if (!hasAny) {
-      if (noData) { noData.style.display = 'block'; noData.textContent = 'Bu kategoride henüz veri girilmemiş.'; }
-      canvas.style.display = 'none';
-      return;
+      if (noData) { noData.style.display='block'; noData.textContent='Bu seçimde henüz veri girilmemiş.'; }
+      canvas.style.display='none'; return;
     }
-    if (noData) noData.style.display = 'none';
-    canvas.style.display = 'block';
+    if (noData) noData.style.display='none';
+    canvas.style.display='block';
 
-    const BAR_H = 28;
-    const PAD = { t:30, r:60, b:20, l:180 };
-    const W = Math.max(500, canvas.offsetWidth || 500);
-    const H = PAD.t + rows.length * (BAR_H + 6) + PAD.b;
-    canvas.width = W;
-    canvas.height = H;
-    canvas.style.height = H + 'px';
+    const BAR_H = 30, GAP = 5;
+    const PAD = { t:36, r:80, b:16, l:200 };
+    const W = Math.max(canvas.offsetWidth||500, 500);
+    const H = PAD.t + rows.length*(BAR_H+GAP) + PAD.b;
+    canvas.width = W; canvas.height = H;
+    canvas.style.height = H+'px';
 
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, W, H);
-
-    const maxY = Math.max(...rows.map(r => r.y), 1);
+    ctx.clearRect(0,0,W,H);
     const cw = W - PAD.l - PAD.r;
+    const maxY = Math.max(...rows.map(r=>r.y), 1);
 
     // Title
-    ctx.fillStyle = '#a0a0c0';
-    ctx.font = 'bold 12px DM Sans';
-    ctx.textAlign = 'left';
-    ctx.fillText(catName + ' — Yanlış Sayısı (azalan sıra)', PAD.l, 20);
+    ctx.fillStyle='#a0a0c0'; ctx.font='bold 12px DM Sans'; ctx.textAlign='left';
+    ctx.fillText(cat + (konuVal==='ALL'?'':konuVal.startsWith('KONU|')?' — Kazanımlar':'') + '  |  Yanlış Sayısı ('+(sira==='azalan'?'↓ azalan':'↑ artan')+')', PAD.l, 24);
 
     rows.forEach((r, i) => {
-      const y = PAD.t + i * (BAR_H + 6);
-      const barW = r.y > 0 ? (r.y / maxY) * cw : 0;
-      const barColor = r.y >= maxY * 0.7 ? '#ff4d4d' : r.y >= maxY * 0.4 ? '#ffc36b' : r.y > 0 ? '#43e97b' : 'rgba(255,255,255,0.08)';
+      const y0 = PAD.t + i*(BAR_H+GAP);
+      const barW = r.y > 0 ? (r.y/maxY)*cw : 2;
+      const pct  = maxY > 0 ? r.y/maxY : 0;
+      const col  = r.isKaz
+        ? (r.y>0 ? '#ff6b6b' : 'rgba(255,255,255,0.08)')
+        : pct>=0.7 ? '#ff4d4d' : pct>=0.4 ? '#ffc36b' : r.y>0 ? '#43e97b' : 'rgba(255,255,255,0.06)';
 
-      // Topic name
-      ctx.fillStyle = r.y > 0 ? '#e0e0f0' : '#5a5a7a';
-      ctx.font = (r.y >= maxY * 0.5 ? 'bold ' : '') + '11px DM Sans';
-      ctx.textAlign = 'right';
-      const shortName = r.name.length > 24 ? r.name.slice(0,22)+'…' : r.name;
-      ctx.fillText(shortName, PAD.l - 8, y + BAR_H/2 + 4);
+      // Name
+      const shortLabel = r.label.length>26 ? r.label.slice(0,24)+'…' : r.label;
+      ctx.font = (r.y>0?'bold ':'')+'11px DM Sans';
+      ctx.fillStyle = r.y>0 ? '#e0e0f0' : '#555577';
+      ctx.textAlign='right';
+      ctx.fillText(shortLabel, PAD.l-8, y0+BAR_H/2+4);
 
-      // Bar background
-      ctx.fillStyle = 'rgba(255,255,255,0.04)';
-      ctx.beginPath();
-      ctx.roundRect ? ctx.roundRect(PAD.l, y, cw, BAR_H, 4) : ctx.rect(PAD.l, y, cw, BAR_H);
-      ctx.fill();
+      // BG bar
+      ctx.fillStyle='rgba(255,255,255,0.04)';
+      ctx.beginPath(); ctx.roundRect?ctx.roundRect(PAD.l,y0,cw,BAR_H,4):ctx.rect(PAD.l,y0,cw,BAR_H); ctx.fill();
 
-      // Bar fill
-      if (barW > 0) {
-        ctx.fillStyle = barColor;
-        ctx.globalAlpha = 0.85;
-        ctx.beginPath();
-        ctx.roundRect ? ctx.roundRect(PAD.l, y, barW, BAR_H, 4) : ctx.rect(PAD.l, y, barW, BAR_H);
-        ctx.fill();
-        ctx.globalAlpha = 1;
+      // Fill bar
+      if (r.y>0) {
+        ctx.globalAlpha=0.85; ctx.fillStyle=col;
+        ctx.beginPath(); ctx.roundRect?ctx.roundRect(PAD.l,y0,barW,BAR_H,4):ctx.rect(PAD.l,y0,barW,BAR_H); ctx.fill();
+        ctx.globalAlpha=1;
       }
 
-      // Values
-      ctx.fillStyle = r.y > 0 ? '#fff' : '#5a5a7a';
-      ctx.font = 'bold 11px DM Sans';
-      ctx.textAlign = 'left';
-      const label = r.y > 0
-        ? `${r.y} yanlış  |  ${r.d} doğru  |  net: ${r.net.toFixed(1)}`
-        : 'veri girilmedi';
-      ctx.fillText(label, PAD.l + Math.max(barW + 6, 4), y + BAR_H/2 + 4);
+      // Value label
+      ctx.font='bold 11px DM Sans'; ctx.textAlign='left';
+      ctx.fillStyle = r.y>0 ? '#fff' : '#555577';
+      const valLabel = r.y>0 ? r.y+' yanlış'+(r.b>0?' · '+r.b+' boş':'') : 'veri yok';
+      ctx.fillText(valLabel, PAD.l + Math.max(barW+6,8), y0+BAR_H/2+4);
     });
   } catch(e) { console.error('drawTrendChart:', e); }
 }
@@ -4151,15 +4191,12 @@ function saveTopics() {
     Object.entries(cats).forEach(([cat, topics]) => {
       topics.forEach(t => {
         const id = key + '_' + t.replace(/[^a-zA-Z0-9]/g,'_');
-        const dEl = document.getElementById(id+'_d');
         const yEl = document.getElementById(id+'_y');
         const bEl = document.getElementById(id+'_b');
-        if (dEl || yEl || bEl) {
-          data[id] = {
-            d: dEl ? dEl.value : '',
-            y: yEl ? yEl.value : '',
-            b: bEl ? bEl.value : ''
-          };
+        if (yEl || bEl) {
+          const yv = yEl ? yEl.value : '';
+          const bv = bEl ? bEl.value : '';
+          if (yv || bv) data[id] = { y: yv, b: bv };
         }
       });
     });
@@ -4170,13 +4207,11 @@ function saveTopics() {
 function loadTopics() {
   const data = lsGet('yks_topics_data', {});
   Object.entries(data).forEach(([id, vals]) => {
-    const dEl = document.getElementById(id+'_d');
     const yEl = document.getElementById(id+'_y');
     const bEl = document.getElementById(id+'_b');
-    if (dEl && vals.d) { dEl.value = vals.d; }
-    if (yEl && vals.y) { yEl.value = vals.y; }
-    if (bEl && vals.b) { bEl.value = vals.b; }
-    if (vals.d || vals.y || vals.b) updateTopicRow(id);
+    if (yEl && vals.y) yEl.value = vals.y;
+    if (bEl && vals.b) bEl.value = vals.b;
+    if (vals.y || vals.b) updateTopicRow(id);
   });
 }
 
