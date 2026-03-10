@@ -4314,9 +4314,10 @@ function fbInit() {
     if (!cfg.apiKey || !cfg.databaseURL) throw new Error('apiKey veya databaseURL eksik');
     
     // Delete previous app if exists
-    if (_fbApp) { _fbApp.delete(); }
+    if (_fbApp) { try { _fbApp.delete(); } catch(e2) {} _fbApp = null; }
+    try { firebase.app('yks-main').delete(); } catch(e2) {}
     
-    _fbApp = firebase.initializeApp(cfg, 'yks-' + Date.now());
+    _fbApp = firebase.initializeApp(cfg, 'yks-main');
     _fbDb  = firebase.database(_fbApp);
     _fbConfig = cfg;
     lsSet('fb_config', cfg);
@@ -4447,18 +4448,20 @@ function lsSet(key, val) {
 }
 
 // Auto-reconnect if config saved
-(function() {
-  if (!_fbConfig) return;
+window.addEventListener('load', function() {
+  if (!_fbConfig || !_fbConfig.apiKey) return;
+  if (typeof firebase === 'undefined') return;
   try {
-    _fbApp = firebase.initializeApp(_fbConfig, 'yks-auto');
+    try { firebase.app('yks-main').delete(); } catch(e2) {}
+    _fbApp = firebase.initializeApp(_fbConfig, 'yks-main');
     _fbDb  = firebase.database(_fbApp);
     firebase.auth(_fbApp).onAuthStateChanged(user => {
       _fbUser = user;
       fbUpdateUI();
       if (user && _fbAutoSync) fbStartListen();
     });
-  } catch(e) {}
-})();
+  } catch(e) { console.warn('Firebase auto-reconnect:', e.message); }
+});
 
 
 
