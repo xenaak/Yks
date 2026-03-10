@@ -759,23 +759,19 @@
   </div>
 
   <div class="tabs">
-    <button class="tab active" onclick="showTab('eks-tyt','eksik')">TYT Konuları</button>
-    <button class="tab" onclick="showTab('eks-mat','eksik')">AYT Matematik</button>
-    <button class="tab" onclick="showTab('eks-fen','eksik')">AYT Fen</button>
-    <button class="tab" onclick="showTab('eks-sos','eksik')">AYT Sosyal</button>
+    <button class="tab active" onclick="showTab('eks-tyt','eksik')">📝 TYT</button>
+    <button class="tab" onclick="showTab('eks-ayt-mat','eksik')">📐 AYT Mat-Geo</button>
+    <button class="tab" onclick="showTab('eks-ayt-fen','eksik')">🔬 AYT Fen</button>
   </div>
 
   <div class="tab-content active" id="eks-tyt">
     <div id="topic-tyt"></div>
   </div>
-  <div class="tab-content" id="eks-mat">
-    <div id="topic-mat"></div>
+  <div class="tab-content" id="eks-ayt-mat">
+    <div id="topic-ayt_mat"></div>
   </div>
-  <div class="tab-content" id="eks-fen">
-    <div id="topic-fen"></div>
-  </div>
-  <div class="tab-content" id="eks-sos">
-    <div id="topic-sos"></div>
+  <div class="tab-content" id="eks-ayt-fen">
+    <div id="topic-ayt_fen"></div>
   </div>
 
   <div style="margin-top:24px;display:flex;gap:12px">
@@ -1368,30 +1364,27 @@ function drawChart() {
 // ==================== EKSİK KONU ====================
 const TOPICS = {
   tyt: {
-    'Türkçe': ['Sözcükte Anlam','Cümlede Anlam','Paragraf','Dil Bilgisi','Yazım Kuralları','Noktalama'],
-    'Sosyal': ['Tarih','Coğrafya','Felsefe','Din'],
-    'Matematik': ['Temel Kavramlar','Sayı Sistemleri','Oran Orantı','Problemler','Geometri','Mantık'],
-    'Fen': ['Fizik Temelleri','Kimya Temelleri','Biyoloji Temelleri'],
+    'Türkçe': ['Sözcükte Anlam','Cümlede Anlam','Paragrafta Anlam','Anlatım Biçimleri','Ses Bilgisi','Yazım Kuralları','Noktalama İşaretleri','Sözcükte Yapı','Sözcük Türleri','Edat-Bağlaç-Ünlem','Fiil-Ek Fiil','Fiilimsi','Filde Çatı','Deyim ve Atasözü','Cümlenin Öğeleri','Cümle Türleri','Anlatım Bozuklukları'],
+    'Matematik': ['Temel Kavramlar','Sayı Basamakları','Bölme ve Bölünebilme','EBOB-EKOK','Rasyonel Sayılar-Ondalık','Basit Eşitsizlikler','Mutlak Değer','Üslü Sayılar','Köklü Sayılar','Çarpanlara Ayırma','Oran Orantı','Denklem Çözme','Problemler','Kümeler-Kartesyen Çarpımı','Fonksiyonlar','Permütasyon','Kombinasyon','Binom','Olasılık','İstatistik','2. Derece Denklemler','Karmaşık Sayılar','Polinomlar','Mantık','Veri Analizi'],
+    'Geometri': ['Doğruda ve Üçgende Açılar','Üçgende Açı-Kenar Bağıntıları','Üçgende Benzerlik','Üçgende Açıortay-Kenarortay','Dik Üçgen','İkizkenar Üçgen','Eşkenar Üçgen','Üçgende Alan','Çokgenler','Dörtgenler','Yamuk-Paralelkenar','Eşkenar Dörtgen','Dikdörtgen','Kare','Deltoid','Çemberde Açı','Çemberde Uzunluk','Dairenin Çevresi ve Alanı','Doğrunun Analitik İncelenmesi','Çemberin Analitik İncelenmesi','Katı Cisimler'],
+    'Tarih': ['Tarih Bilimine Giriş','Uygarlığın Doğuşu','İlk Türk Devletleri','İslam Tarihi ve Uygarlığı','Türk-İslam Devletleri','Türklerin İslamiyeti Kabulü','Türkiye Tarihi','Beylikten Devlete (1300-1453)','Osmanlı Duraklama Dönemi','Gerileme Devri (1699-1792)','Arayış Yılları','18. YY Osmanlı','En Uzun Yüzyıl (1800-1922)','20. YY Başları Osmanlı','XIX. YY Osmanlı','1. Dünya Savaşı - Milli Mücadele','Kurtuluş Savaşı Cepheleri','Türk İnkılabı','Atatürkçülük ve Atatürk İlkeleri','Türk Dış Politikası'],
+    'Coğrafya': ['İnsan ve Doğa','Dünyanın Şekli ve Hareketleri','Coğrafi Konum','Harita Bilgisi','Atmosfer ve Sıcaklık','İklimler','Basınç ve Rüzgarlar','Nem Yağış Buharlaşma','İç-Dış Kuvvetler','Su-Toprak-Bitkiler','Nüfus-Göç-Yerleşme','Türkiyenin Yer Şekilleri','Ekonomik Faaliyetler','Bölgeler ve Ülkeler','Uluslararası Ulaşım Hatları','Çevre ve Toplum','Doğal Afetler'],
+    'Felsefe': ['Felsefenin Alanı','Bilgi Felsefesi','Bilim Felsefesi','Varlık Felsefesi','Ahlak Felsefesi','Siyaset Felsefesi','Sanat Felsefesi','Din Felsefesi'],
+    'Din Kültürü': ['İnsan ve Din','İbadet','Hz. Muhammedin Hayatı','Vahiy ve Akıl','İslam Düşüncesi ve Yorumu','Ahlak, Değerler, Sanat ve Laiklik','Yaşayan Dinler'],
+    'Fizik': ['Fizik Bilimine Giriş','Madde ve Özellikleri','Kuvvet ve Hareket','İş Güç ve Enerji','Isı Sıcaklık ve Genleşme','Basınç','Kaldırma Kuvveti','Elektrik ve Manyetizma','Dalgalar','Optik'],
+    'Kimya': ['Kimya Bilimi','Atom ve Periyodik Sistem','Kimyasal Türler Arası Etkileşimler','Maddenin Halleri','Doğa ve Kimya','Kimyanın Temel Kanunları','Karışımlar','Asitler-Bazlar ve Tuzlar','Kimya Her Yerde'],
+    'Biyoloji': ['Yaşam Bilimi Biyoloji','Hücre','Canlılar Dünyası','Hücre Bölünmeleri ve Üreme','Kalıtımın Genel İlkeleri','Ekosistem Ekolojisi ve Güncel Çevre Sorunları'],
   },
-  mat: {
-    'Temel Matematik': ['Sayılar','Oran Orantı','Denklemler','Eşitsizlikler','Mutlak Değer'],
-    'Geometri': ['Üçgenler','Dörtgenler','Çember','Koordinat Geo.','Dönüşümler'],
-    'Analitik Geometri': ['Doğrunun Denklemi','Çemberin Denklemi','Parabolün Denklemi'],
-    'Türev & İntegral': ['Limit','Türev','İntegral','Uygulamalar'],
-    'Diğer': ['Olasılık','İstatistik','Kompleks Sayılar','Seriler'],
+  ayt_mat: {
+    'Matematik': ['Temel Kavramlar','Sayı Basamakları','Bölme ve Bölünebilme','EBOB-EKOK','Rasyonel Sayılar','Basit Eşitsizlikler','Mutlak Değer','Üslü Sayılar','Köklü Sayılar','Çarpanlara Ayırma','Oran Orantı','Denklem Çözme','Problemler','Kümeler','Kartezyen Çarpım','Mantık','Fonksiyonlar','Polinomlar','2. Derece Denklemler','Permütasyon ve Kombinasyon','Binom ve Olasılık','İstatistik','Karmaşık Sayılar','2. Derece Eşitsizlikler','Trigonometri','Logaritma','Diziler','Limit','Türev','İntegral'],
+    'Geometri': ['Doğruda ve Üçgende Açılar','Dik ve Özel Üçgenler','Dik Üçgende Trigonometrik Bağıntılar','İkizkenar ve Eşkenar Üçgen','Üçgende Alanlar','Üçgende Açıortay Bağıntıları','Üçgende Kenarortay Bağıntıları','Üçgende Eşlik ve Benzerlik','Üçgende Açı-Kenar Bağıntıları','Çokgenler','Dörtgenler','Yamuk','Paralelkenar','Eşkenar Dörtgen-Deltoid','Dikdörtgen','Çemberde Açılar','Çemberde Uzunluk','Daire','Prizmalar','Piramitler','Küre','Koordinat Düzlemi ve Noktanın Analitiği','Doğrunun Analitiği','Tekrar Eden Dönen Yansıyan Şekiller','2. Dereceden Geometri','Dönüşümlerle Geometri','Trigonometri','Çemberin Analitiği'],
   },
-  fen: {
-    'Fizik': ['Kuvvet ve Hareket','Elektrik','Manyetizma','Dalgalar','Modern Fizik','Optik'],
-    'Kimya': ['Atom','Periyodik Tablo','Kimyasal Bağlar','Reaksiyonlar','Asit-Baz','Organik'],
-    'Biyoloji': ['Hücre','Sindirim','Dolaşım','Solunum','Boşaltım','Sinir Sistemi','Genetik','Evrim'],
+  ayt_fen: {
+    'Fizik': ['Vektörler','Kuvvet Tork ve Denge','Kütle Merkezi','Basit Makineler','Hareket','Newtonun Hareket Yasaları','İş Güç ve Enerji II','Atışlar','İtme ve Momentum','Elektrik Alan ve Potansiyel','Paralel Levhalar ve Sığa','Manyetik Alan ve Kuvvet','İndüksiyon ve Alternatif Akım','Çembersel Hareket','Basit Harmonik Hareket','Dalga Mekaniği ve Elektromanyetik Dalgalar','Atom Modelleri','Büyük Patlama ve Radyoaktivite','Modern Fizik','Modern Fiziğin Teknolojideki Uygulamaları'],
+    'Kimya': ['Modern Atom Teorisi','Gazlar','Sıvı Çözeltiler ve Çözünürlük','Kimyasal Tepkimelerde Enerji','Tepkimelerde Hız ve Denge','Kimya ve Elektrik','Karbon Kimyası','Organik Kimya','Enerji Kaynakları ve Bilimsel Gelişmeler'],
+    'Biyoloji': ['Sinir Sistemi','Endokrin Sistem','Duyu Organları','Destek ve Hareket Sistemi','Sindirim Sistemi','Dolaşım ve Bağışıklık Sistemi','Solunum Sistemi','Üriner Sistem','Üreme Sistemi ve Embriyonik Gelişim','Komünite ve Popülasyon Ekolojisi','Nükleik Asitler','Genetik Şifre ve Protein Sentezi','Canlılık ve Enerji','Fotosentez ve Kemosentez','Hücresel Solunum','Bitki Biyolojisi','Canlılar ve Çevre'],
   },
-  sos: {
-    'Tarih': ['Osmanlı Tarihi','Türk İnkılabı','Atatürk İlkeleri','Dünya Tarihi','Çağdaş Türk'],
-    'Coğrafya': ['Türkiye Coğrafyası','Dünya Coğrafyası','Nüfus ve Şehirleşme','Ekonomi Coğrafyası'],
-    'Felsefe': ['Felsefenin Alanları','Bilgi Felsefesi','Varlık Felsefesi','Ahlak Felsefesi'],
-    'Din': ['İslam Tarihi','İbadetler','Ahlak','Kuran'],
-  }
-};
+}
 
 // ══════════════════════════════════════════════════════════════════════════
 // KAZANIMLAR  —  her konunun alt kazanımları
@@ -1488,13 +1481,13 @@ const KAZANIMLAR = {
 };
 
 function buildTopicForms() {
-  Object.entries({tyt:'eks-tyt',mat:'eks-mat',fen:'eks-fen',sos:'eks-sos'}).forEach(([key, divId]) => {
+  Object.entries({tyt:'eks-tyt',ayt_mat:'eks-ayt-mat',ayt_fen:'eks-ayt-fen'}).forEach(([key, divId]) => {
     const container = document.getElementById('topic-' + key);
     let h = '';
     Object.entries(TOPICS[key]).forEach(([cat, topics]) => {
       h += `<div class="section-title">${cat}</div>`;
       h += `<div style="overflow-x:auto"><table><thead><tr>
-        <th>Konu</th><th>Doğru</th><th>Yanlış</th><th>Boş</th><th>Net</th><th>Başarı %</th>
+        <th>Konu</th><th>D</th><th>Y</th><th>B</th><th>Net</th><th>%</th><th style="min-width:150px">Deneme</th><th style="min-width:120px">Not</th>
       </tr></thead><tbody>`;
       topics.forEach(t => {
         const id = key + '_' + t.replace(/[^a-zA-Z0-9]/g,'_');
@@ -1519,6 +1512,13 @@ function buildTopicForms() {
           <td><input type="number" id="${id}_b" min="0" placeholder="0" style="width:64px;margin:0;padding:6px 8px;font-size:12px" oninput="updateTopicRow('${id}')"></td>
           <td><span id="${id}_net" class="net-tag" style="font-size:12px">0</span></td>
           <td><span id="${id}_pct" style="font-size:12px;color:var(--muted)">—</span></td>
+          <td>
+            <select id="${id}_den" onchange="saveTopicMeta('${id}')" style="margin:0;font-size:11px;padding:4px 6px;width:100%">
+              <option value="">— Deneme seç —</option>
+              ${[...denemeler.filter(d=>d.type==='TYT'||d.type==='AYT'),...lsGet('yks_brans',[])].map(d=>`<option value="${d.name||d.ad}">${d.type||d.ders||''} — ${d.name||d.ad}</option>`).join('')}
+            </select>
+          </td>
+          <td><input type="text" id="${id}_not" placeholder="Not..." oninput="saveTopicMeta('${id}')" style="margin:0;font-size:11px;padding:4px 6px;width:100%"></td>
         </tr>`;
       });
       h += `</tbody></table></div>`;
@@ -4191,7 +4191,29 @@ function oturumRender() {
 }
 
 
+
+function saveTopicMeta(id) {
+  const denEl = document.getElementById(id + '_den');
+  const notEl = document.getElementById(id + '_not');
+  const data = lsGet('yks_topic_meta', {});
+  if (!data[id]) data[id] = {};
+  if (denEl) data[id].den = denEl.value;
+  if (notEl) data[id].not = notEl.value;
+  lsSet('yks_topic_meta', data);
+}
+
+function loadTopicMeta() {
+  const data = lsGet('yks_topic_meta', {});
+  Object.entries(data).forEach(([id, meta]) => {
+    const denEl = document.getElementById(id + '_den');
+    const notEl = document.getElementById(id + '_not');
+    if (denEl && meta.den) denEl.value = meta.den;
+    if (notEl && meta.not) notEl.value = meta.not;
+  });
+}
+
 buildTopicForms();
+loadTopicMeta();
 renderTip([...TIP_DATA].sort((a,b) => (a.r25||a.r24||99999) - (b.r25||b.r24||99999)));
 updateDashboard();
 setTimeout(function(){ populateTrendDropdown(); drawTrendChart(); renderVideos(); renderPresets(); oturumRender(); }, 100);
