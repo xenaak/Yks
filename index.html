@@ -1004,10 +1004,12 @@ function showPage(id) {
 
 function showTab(id, page) {
   const pg = document.getElementById(page);
+  if (!pg) return;
   pg.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   pg.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  event.target.classList.add('active');
+  const tabEl = document.getElementById(id);
+  if (tabEl) tabEl.classList.add('active');
+  try { (event.target.closest('.tab') || event.target).classList.add('active'); } catch(e) {}
 }
 
 // ==================== NET CALC ====================
@@ -1197,7 +1199,7 @@ function updateDashboard() {
       const netClass = d.net >= 80 ? 'net-pos' : d.net < 40 ? 'net-neg' : '';
       const trend = vi < shown.length-1 ? (d.net > shown[vi+1].net ? '↑' : d.net < shown[vi+1].net ? '↓' : '→') : '';
       const trendC = trend==='↑' ? 'var(--success)' : trend==='↓' ? 'var(--danger)' : 'var(--muted)';
-      return `<div class="history-item" style="gap:8px">
+      return `<div class="history-item" style="gap:8px;cursor:pointer" onclick="showDenemeGrafik(${realIdx})">
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <span style="font-weight:600;font-size:13px">${d.name}</span>
@@ -1208,7 +1210,7 @@ function updateDashboard() {
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent)" class="${netClass}">${d.net}</div>
-          <button onclick="removeDeneme(${realIdx})" style="background:none;border:none;color:#ff6b6b;font-size:16px;cursor:pointer;padding:4px" title="Sil">🗑</button>
+          <button onclick="event.stopPropagation();removeDeneme(${realIdx})" style="background:none;border:none;color:#ff6b6b;font-size:16px;cursor:pointer;padding:4px" title="Sil">🗑</button>
         </div>
       </div>`;
     }).join('');
@@ -1242,9 +1244,9 @@ function updateDashboard() {
           return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:8px;flex-wrap:wrap">
             <span style="flex:1;font-size:13px;font-weight:600">${g.ad}</span>
             <span style="font-size:11px;color:var(--muted)">${g.nets.length} deneme</span>
-            <span style="font-size:18px;font-family:'Bebas Neue',sans-serif;color:${ortColor}">∅ ${ort}</span>
-            <span style="font-size:11px;color:var(--muted)">son:</span>
-            <span style="font-size:18px;font-family:'Bebas Neue',sans-serif;color:${sonColor}">${son}</span>
+            <span style="font-size:16px;font-family:'Bebas Neue',sans-serif;color:${ortColor}">∅ ${ort} net</span>
+            <span style="font-size:11px;color:var(--muted)">|  son:</span>
+            <span style="font-size:18px;font-family:'Bebas Neue',sans-serif;color:${sonColor}">${son} net</span>
           </div>`;
         }).join('') + '</div>';
     }
@@ -1258,58 +1260,94 @@ function drawChart() {
   const ctx = canvas.getContext('2d');
   if (!canvas.offsetWidth) return;
   canvas.width = canvas.offsetWidth;
-  canvas.height = 180;
-  const data = denemeler.slice(-10).map(d => d.net);
-  if (!data.length) return;
+  canvas.height = 220;
+  const dpr = window.devicePixelRatio || 1;
 
-  const max = Math.max(...data, 1);
+  const tytData = denemeler.filter(d => d.type === 'TYT').slice(-10);
+  const aytData = denemeler.filter(d => d.type === 'AYT').slice(-10);
+  if (!tytData.length && !aytData.length) return;
+
+  const allNets = [...tytData, ...aytData].map(d => d.net);
+  const max = Math.max(...allNets, 1);
+
   const w = canvas.width, h = canvas.height;
-  const pad = { t:16, r:16, b:32, l:40 };
+  const pad = { t:30, r:16, b:40, l:44 };
   const cw = w - pad.l - pad.r;
   const ch = h - pad.t - pad.b;
 
   ctx.clearRect(0, 0, w, h);
 
-  // Grid
-  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
   ctx.lineWidth = 1;
   [0.25, 0.5, 0.75, 1].forEach(r => {
     const y = pad.t + ch * (1 - r);
     ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cw, y); ctx.stroke();
     ctx.fillStyle = '#7070a0'; ctx.font = '10px DM Sans'; ctx.textAlign = 'right';
-    ctx.fillText(Math.round(max * r), pad.l - 4, y + 3);
+    ctx.fillText(Math.round(max * r), pad.l - 6, y + 3);
   });
 
-  // Line
-  const pts = data.map((v, i) => ({
-    x: pad.l + (i / Math.max(data.length - 1, 1)) * cw,
-    y: pad.t + ch * (1 - v / max)
-  }));
+  // Legend
+  ctx.font = 'bold 11px DM Sans'; ctx.textAlign = 'left';
+  ctx.fillStyle = '#ff4d4d';
+  ctx.fillRect(pad.l, 8, 20, 3);
+  ctx.fillText('TYT', pad.l + 24, 14);
+  ctx.fillStyle = '#4d9fff';
+  ctx.fillRect(pad.l + 70, 8, 20, 3);
+  ctx.fillText('AYT', pad.l + 94, 14);
 
-  // Fill
-  const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
-  grad.addColorStop(0, 'rgba(108,99,255,0.3)');
-  grad.addColorStop(1, 'rgba(108,99,255,0)');
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, pad.t + ch);
-  pts.forEach(p => ctx.lineTo(p.x, p.y));
-  ctx.lineTo(pts[pts.length-1].x, pad.t + ch);
-  ctx.closePath();
-  ctx.fillStyle = grad; ctx.fill();
+  function drawSeries(data, color, fillColor) {
+    if (!data.length) return;
+    const pts = data.map((d, i) => ({
+      x: pad.l + (i / Math.max(data.length - 1, 1)) * cw,
+      y: pad.t + ch * (1 - d.net / max),
+      net: d.net,
+      name: d.name
+    }));
 
-  // Line stroke
-  ctx.beginPath();
-  ctx.strokeStyle = '#6c63ff'; ctx.lineWidth = 2.5;
-  pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
-  ctx.stroke();
-
-  // Dots
-  pts.forEach(p => {
+    // Fill under line
+    const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
+    grad.addColorStop(0, fillColor);
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-    ctx.fillStyle = '#6c63ff'; ctx.fill();
-    ctx.strokeStyle = '#0a0a0f'; ctx.lineWidth = 2; ctx.stroke();
-  });
+    ctx.moveTo(pts[0].x, pad.t + ch);
+    pts.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.lineTo(pts[pts.length-1].x, pad.t + ch);
+    ctx.closePath();
+    ctx.fillStyle = grad; ctx.fill();
+
+    // Line
+    ctx.beginPath();
+    ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+    pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+    ctx.stroke();
+
+    // Dots + labels
+    pts.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = color; ctx.fill();
+      ctx.strokeStyle = '#0a0a0f'; ctx.lineWidth = 2; ctx.stroke();
+      // net label above dot
+      ctx.fillStyle = color; ctx.font = 'bold 10px DM Sans'; ctx.textAlign = 'center';
+      ctx.fillText(p.net, p.x, p.y - 8);
+    });
+
+    // X-axis labels
+    ctx.fillStyle = '#7070a0'; ctx.font = '9px DM Sans'; ctx.textAlign = 'center';
+    if (data.length === 1) {
+      ctx.fillText(data[0].name ? data[0].name.slice(0,8) : '', pts[0].x, h - 6);
+    } else {
+      pts.forEach((p, i) => {
+        if (i === 0 || i === pts.length - 1 || pts.length <= 5) {
+          ctx.fillText(data[i].name ? data[i].name.slice(0,7) : (i+1), p.x, h - 6);
+        }
+      });
+    }
+  }
+
+  drawSeries(tytData, '#ff4d4d', 'rgba(255,77,77,0.18)');
+  drawSeries(aytData, '#4d9fff', 'rgba(77,153,255,0.18)');
 }
 
 // ==================== EKSİK KONU ====================
