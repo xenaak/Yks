@@ -1249,6 +1249,21 @@ function updateDashboard() {
             <span style="font-size:18px;font-family:'Bebas Neue',sans-serif;color:${sonColor}">${son} net</span>
           </div>`;
         }).join('') + '</div>';
+
+      // Son denemeler listesi
+      dBransList.innerHTML += '<div style="margin-top:10px;display:flex;flex-direction:column;gap:4px">' +
+        bransTum.slice(0, 8).map(r => {
+          const nc = r.net >= (r.toplam||40)*0.7 ? '#43e97b' : r.net >= (r.toplam||40)*0.5 ? '#ffc36b' : '#ff8fa3';
+          return `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(255,255,255,0.02);border-radius:7px;flex-wrap:wrap">
+            <span style="font-size:10px;color:var(--muted);min-width:60px">${r.tarih}</span>
+            <span style="flex:1;font-size:12px;font-weight:600">${r.ad}</span>
+            <span style="font-size:10px;color:var(--muted)">${r.ders.split(' ').slice(0,2).join(' ')}</span>
+            <span style="font-size:10px;color:#43e97b">✅${r.d}</span>
+            <span style="font-size:10px;color:#ff6b6b">❌${r.y}</span>
+            <span style="font-size:10px;color:var(--muted)">⬜${r.b}</span>
+            <span style="font-size:16px;font-family:'Bebas Neue',sans-serif;color:${nc}">${r.net}</span>
+          </div>`;
+        }).join('') + '</div>';
     }
   }
 
