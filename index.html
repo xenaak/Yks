@@ -791,7 +791,7 @@
       <div>
         <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">GÖSTERİM</label>
         <select id="trend-mode" onchange="drawTrendChart()" style="margin:0">
-          <option value="yanlis">Yanlış Sayısı</option>
+          <option value="yanlis" selected>Yanlış Sayısı</option>
           <option value="pct">Başarı %</option>
         </select>
       </div>
@@ -1552,9 +1552,11 @@ function updateTopicRow(id) {
   // Kazanım chip'lerini Y > 0 ise göster
   const wrap = document.getElementById(id+'_kaz_wrap');
   if (wrap) wrap.style.display = y > 0 ? 'block' : 'none';
+  saveTopics();
 }
 
 function analyzeTopics() {
+  saveTopics();
   const results = [];
   Object.entries(TOPICS).forEach(([key, cats]) => {
     Object.entries(cats).forEach(([cat, topics]) => {
@@ -4212,7 +4214,44 @@ function loadTopicMeta() {
   });
 }
 
+
+function saveTopics() {
+  const data = {};
+  Object.entries(TOPICS).forEach(([key, cats]) => {
+    Object.entries(cats).forEach(([cat, topics]) => {
+      topics.forEach(t => {
+        const id = key + '_' + t.replace(/[^a-zA-Z0-9]/g,'_');
+        const dEl = document.getElementById(id+'_d');
+        const yEl = document.getElementById(id+'_y');
+        const bEl = document.getElementById(id+'_b');
+        if (dEl || yEl || bEl) {
+          data[id] = {
+            d: dEl ? dEl.value : '',
+            y: yEl ? yEl.value : '',
+            b: bEl ? bEl.value : ''
+          };
+        }
+      });
+    });
+  });
+  lsSet('yks_topics_data', data);
+}
+
+function loadTopics() {
+  const data = lsGet('yks_topics_data', {});
+  Object.entries(data).forEach(([id, vals]) => {
+    const dEl = document.getElementById(id+'_d');
+    const yEl = document.getElementById(id+'_y');
+    const bEl = document.getElementById(id+'_b');
+    if (dEl && vals.d) { dEl.value = vals.d; }
+    if (yEl && vals.y) { yEl.value = vals.y; }
+    if (bEl && vals.b) { bEl.value = vals.b; }
+    if (vals.d || vals.y || vals.b) updateTopicRow(id);
+  });
+}
+
 buildTopicForms();
+loadTopics();
 loadTopicMeta();
 renderTip([...TIP_DATA].sort((a,b) => (a.r25||a.r24||99999) - (b.r25||b.r24||99999)));
 updateDashboard();
