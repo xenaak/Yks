@@ -458,7 +458,94 @@
     <h1>DENEME ANALİZİ</h1>
     <div class="accent-line"></div>
     <p>TYT ve AYT net hesaplaması • OBP dahil puan tahmini</p>
+  
+
+
+
+  <!-- BRANŞ DENEME TAB -->
+  <div class="tab-content" id="brans-tab">
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">🎯 BRANŞ DENEME ANALİZİ</div>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Tek bir derse ait branş denemesi — doğru, yanlış ve boş gir, net hesaplanır.</p>
+      <div class="grid-2" style="gap:12px;margin-bottom:16px">
+        <div>
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">DERS</label>
+          <select id="brans-ders" style="width:100%" onchange="bransUpdate()">
+            <option value="tyt-mat">📐 TYT Matematik (40 Soru)</option>
+            <option value="tyt-tr">📖 TYT Türkçe (40 Soru)</option>
+            <option value="tyt-fen">🔬 TYT Fen Bilimleri (20 Soru)</option>
+            <option value="tyt-sos">🌍 TYT Sosyal Bilimler (20 Soru)</option>
+            <option value="ayt-mat">📐 AYT Matematik (40 Soru)</option>
+            <option value="ayt-fiz">⚡ AYT Fizik (14 Soru)</option>
+            <option value="ayt-kim">⚗️ AYT Kimya (13 Soru)</option>
+            <option value="ayt-bio">🧬 AYT Biyoloji (13 Soru)</option>
+            <option value="ayt-edeb">📜 AYT Türk Dili ve Edebiyatı (24 Soru)</option>
+            <option value="ayt-tarih1">🏛 AYT Tarih-1 (10 Soru)</option>
+            <option value="ayt-cografya1">🗺 AYT Coğrafya-1 (6 Soru)</option>
+            <option value="ayt-tarih2">🏛 AYT Tarih-2 (11 Soru)</option>
+            <option value="ayt-cografya2">🗺 AYT Coğrafya-2 (11 Soru)</option>
+            <option value="ayt-felsefe">💭 AYT Felsefe (12 Soru)</option>
+            <option value="ayt-din">☪️ AYT Din Kültürü (6 Soru)</option>
+            <option value="ozel">✏️ Özel (Soru sayısı gir)</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">DENEME ADI (opsiyonel)</label>
+          <input type="text" id="brans-ad" placeholder="ör: Hız Yayın Mat Branş #3" style="width:100%">
+        </div>
+      </div>
+      <div id="brans-ozel-row" style="display:none;margin-bottom:16px">
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">TOPLAM SORU SAYISI</label>
+        <input type="number" id="brans-toplam-soru" min="1" max="200" placeholder="40" style="width:120px" oninput="bransUpdate()">
+      </div>
+      <div class="grid-4" style="gap:12px;margin-bottom:20px">
+        <div>
+          <label style="font-size:12px;color:var(--accent);display:block;margin-bottom:4px">✅ DOĞRU</label>
+          <input type="number" id="brans-d" min="0" placeholder="0" style="width:100%;font-size:20px;text-align:center;padding:12px" oninput="bransCalc()">
+        </div>
+        <div>
+          <label style="font-size:12px;color:#ff6b6b;display:block;margin-bottom:4px">❌ YANLIŞ</label>
+          <input type="number" id="brans-y" min="0" placeholder="0" style="width:100%;font-size:20px;text-align:center;padding:12px" oninput="bransCalc()">
+        </div>
+        <div>
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">⬜ BOŞ</label>
+          <input type="number" id="brans-b" min="0" placeholder="0" style="width:100%;font-size:20px;text-align:center;padding:12px" oninput="bransCalc()" readonly>
+        </div>
+        <div>
+          <label style="font-size:12px;color:#43e97b;display:block;margin-bottom:4px">📊 NET</label>
+          <div id="brans-net" style="font-size:28px;font-family:'Bebas Neue',sans-serif;color:#43e97b;text-align:center;padding:12px;background:rgba(67,233,123,0.1);border-radius:10px;border:1px solid rgba(67,233,123,0.3)">—</div>
+        </div>
+      </div>
+      <div id="brans-istatistik" style="display:none;background:rgba(255,255,255,0.03);border-radius:12px;padding:16px;margin-bottom:16px">
+        <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center">
+          <div style="text-align:center"><div id="brans-yzde" style="font-size:28px;font-family:'Bebas Neue',sans-serif;color:#a89fff">—</div><div style="font-size:11px;color:var(--muted)">BAŞARI %</div></div>
+          <div style="text-align:center"><div id="brans-toplam-gir" style="font-size:28px;font-family:'Bebas Neue',sans-serif;color:#fff">—</div><div style="font-size:11px;color:var(--muted)">TOPLAM GİRİLEN</div></div>
+          <div style="text-align:center"><div id="brans-kalan" style="font-size:28px;font-family:'Bebas Neue',sans-serif;color:#ffc36b">—</div><div style="font-size:11px;color:var(--muted)">HEDEF NET İÇİN EKSİK</div></div>
+          <div style="flex:1;min-width:200px">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px">DOĞRU ORANI</div>
+            <div style="background:rgba(255,255,255,0.05);border-radius:20px;height:10px;overflow:hidden">
+              <div id="brans-bar" style="height:100%;border-radius:20px;background:linear-gradient(90deg,#43e97b,#38f9d7);transition:width 0.4s" width="0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <input type="number" id="brans-hedef" placeholder="Hedef net (ör: 35)" min="0" style="width:180px" oninput="bransCalc()">
+        <button class="btn btn-primary" onclick="bransKaydet()" style="margin:0">💾 Kaydet</button>
+        <button class="btn" onclick="bransSifirla()" style="margin:0;background:rgba(255,100,100,0.15);color:#ff6b6b">🗑 Sıfırla</button>
+      </div>
+    </div>
+
+    <!-- Geçmiş -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="card-title" style="margin:0">📋 BRANŞ GEÇMİŞİ</div>
+        <button onclick="bransTumunuSil()" style="background:none;border:none;color:#ff6b6b;font-size:12px;cursor:pointer">🗑 Tümünü Sil</button>
+      </div>
+      <div id="brans-gecmis"><div style="color:var(--muted);font-size:13px">Henüz kayıt yok.</div></div>
+    </div>
   </div>
+</div>
 
   <div class="tabs">
     <button class="tab active" onclick="showTab('tyt-tab','deneme')">TYT</button>
@@ -662,91 +749,6 @@
     </div>
   </div>
 </div>
-
-
-  <!-- BRANŞ DENEME TAB -->
-  <div class="tab-content" id="brans-tab">
-    <div class="card" style="margin-bottom:16px">
-      <div class="card-title">🎯 BRANŞ DENEME ANALİZİ</div>
-      <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Tek bir derse ait branş denemesi — doğru, yanlış ve boş gir, net hesaplanır.</p>
-      <div class="grid-2" style="gap:12px;margin-bottom:16px">
-        <div>
-          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">DERS</label>
-          <select id="brans-ders" style="width:100%" onchange="bransUpdate()">
-            <option value="tyt-mat">📐 TYT Matematik (40 Soru)</option>
-            <option value="tyt-tr">📖 TYT Türkçe (40 Soru)</option>
-            <option value="tyt-fen">🔬 TYT Fen Bilimleri (20 Soru)</option>
-            <option value="tyt-sos">🌍 TYT Sosyal Bilimler (20 Soru)</option>
-            <option value="ayt-mat">📐 AYT Matematik (40 Soru)</option>
-            <option value="ayt-fiz">⚡ AYT Fizik (14 Soru)</option>
-            <option value="ayt-kim">⚗️ AYT Kimya (13 Soru)</option>
-            <option value="ayt-bio">🧬 AYT Biyoloji (13 Soru)</option>
-            <option value="ayt-edeb">📜 AYT Türk Dili ve Edebiyatı (24 Soru)</option>
-            <option value="ayt-tarih1">🏛 AYT Tarih-1 (10 Soru)</option>
-            <option value="ayt-cografya1">🗺 AYT Coğrafya-1 (6 Soru)</option>
-            <option value="ayt-tarih2">🏛 AYT Tarih-2 (11 Soru)</option>
-            <option value="ayt-cografya2">🗺 AYT Coğrafya-2 (11 Soru)</option>
-            <option value="ayt-felsefe">💭 AYT Felsefe (12 Soru)</option>
-            <option value="ayt-din">☪️ AYT Din Kültürü (6 Soru)</option>
-            <option value="ozel">✏️ Özel (Soru sayısı gir)</option>
-          </select>
-        </div>
-        <div>
-          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">DENEME ADI (opsiyonel)</label>
-          <input type="text" id="brans-ad" placeholder="ör: Hız Yayın Mat Branş #3" style="width:100%">
-        </div>
-      </div>
-      <div id="brans-ozel-row" style="display:none;margin-bottom:16px">
-        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">TOPLAM SORU SAYISI</label>
-        <input type="number" id="brans-toplam-soru" min="1" max="200" placeholder="40" style="width:120px" oninput="bransUpdate()">
-      </div>
-      <div class="grid-4" style="gap:12px;margin-bottom:20px">
-        <div>
-          <label style="font-size:12px;color:var(--accent);display:block;margin-bottom:4px">✅ DOĞRU</label>
-          <input type="number" id="brans-d" min="0" placeholder="0" style="width:100%;font-size:20px;text-align:center;padding:12px" oninput="bransCalc()">
-        </div>
-        <div>
-          <label style="font-size:12px;color:#ff6b6b;display:block;margin-bottom:4px">❌ YANLIŞ</label>
-          <input type="number" id="brans-y" min="0" placeholder="0" style="width:100%;font-size:20px;text-align:center;padding:12px" oninput="bransCalc()">
-        </div>
-        <div>
-          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">⬜ BOŞ</label>
-          <input type="number" id="brans-b" min="0" placeholder="0" style="width:100%;font-size:20px;text-align:center;padding:12px" oninput="bransCalc()" readonly>
-        </div>
-        <div>
-          <label style="font-size:12px;color:#43e97b;display:block;margin-bottom:4px">📊 NET</label>
-          <div id="brans-net" style="font-size:28px;font-family:'Bebas Neue',sans-serif;color:#43e97b;text-align:center;padding:12px;background:rgba(67,233,123,0.1);border-radius:10px;border:1px solid rgba(67,233,123,0.3)">—</div>
-        </div>
-      </div>
-      <div id="brans-istatistik" style="display:none;background:rgba(255,255,255,0.03);border-radius:12px;padding:16px;margin-bottom:16px">
-        <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center">
-          <div style="text-align:center"><div id="brans-yzde" style="font-size:28px;font-family:'Bebas Neue',sans-serif;color:#a89fff">—</div><div style="font-size:11px;color:var(--muted)">BAŞARI %</div></div>
-          <div style="text-align:center"><div id="brans-toplam-gir" style="font-size:28px;font-family:'Bebas Neue',sans-serif;color:#fff">—</div><div style="font-size:11px;color:var(--muted)">TOPLAM GİRİLEN</div></div>
-          <div style="text-align:center"><div id="brans-kalan" style="font-size:28px;font-family:'Bebas Neue',sans-serif;color:#ffc36b">—</div><div style="font-size:11px;color:var(--muted)">HEDEF NET İÇİN EKSİK</div></div>
-          <div style="flex:1;min-width:200px">
-            <div style="font-size:11px;color:var(--muted);margin-bottom:6px">DOĞRU ORANI</div>
-            <div style="background:rgba(255,255,255,0.05);border-radius:20px;height:10px;overflow:hidden">
-              <div id="brans-bar" style="height:100%;border-radius:20px;background:linear-gradient(90deg,#43e97b,#38f9d7);transition:width 0.4s" width="0%"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <input type="number" id="brans-hedef" placeholder="Hedef net (ör: 35)" min="0" style="width:180px" oninput="bransCalc()">
-        <button class="btn btn-primary" onclick="bransKaydet()" style="margin:0">💾 Kaydet</button>
-        <button class="btn" onclick="bransSifirla()" style="margin:0;background:rgba(255,100,100,0.15);color:#ff6b6b">🗑 Sıfırla</button>
-      </div>
-    </div>
-
-    <!-- Geçmiş -->
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div class="card-title" style="margin:0">📋 BRANŞ GEÇMİŞİ</div>
-        <button onclick="bransTumunuSil()" style="background:none;border:none;color:#ff6b6b;font-size:12px;cursor:pointer">🗑 Tümünü Sil</button>
-      </div>
-      <div id="brans-gecmis"><div style="color:var(--muted);font-size:13px">Henüz kayıt yok.</div></div>
-    </div>
-  </div>
 
 <!-- EKSİK KONU ANALİZİ -->
 <div class="page" id="eksik">
@@ -1221,26 +1223,28 @@ function updateDashboard() {
   // Branş denemeler — per ders averages
   const dBransList = document.getElementById('d-brans-list');
   if (dBransList) {
-    const bransSon = (lsGet('yks_brans', [])).slice(0, 6);
-    if (!bransSon.length) {
+    const bransTum = lsGet('yks_brans', []);
+    if (!bransTum.length) {
       dBransList.innerHTML = '<div style="color:var(--muted);font-size:13px">Henüz branş denemesi kaydedilmedi.</div>';
     } else {
-      // Group by dersKey - show averages
       const grouped = {};
-      bransSon.forEach(r => {
-        if (!grouped[r.dersKey]) grouped[r.dersKey] = { ad: r.ders, nets: [], kayitlar: [] };
+      bransTum.forEach(r => {
+        if (!grouped[r.dersKey]) grouped[r.dersKey] = { ad: r.ders, nets: [], sonToplam: r.toplam };
         grouped[r.dersKey].nets.push(r.net);
-        grouped[r.dersKey].kayitlar.push(r);
+        grouped[r.dersKey].sonToplam = r.toplam;
       });
       dBransList.innerHTML = '<div style="display:flex;flex-direction:column;gap:6px">' +
-        bransSon.map(r => {
-          const netColor = r.net >= r.toplam * 0.7 ? '#43e97b' : r.net >= r.toplam * 0.5 ? '#ffc36b' : '#ff8fa3';
-          return `<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;background:rgba(255,255,255,0.03);border-radius:8px;flex-wrap:wrap">
-            <span style="font-size:11px;color:var(--muted);min-width:65px">${r.tarih}</span>
-            <span style="flex:1;font-size:13px;font-weight:600">${r.ad}</span>
-            <span style="font-size:11px;color:var(--muted)">${r.ders}</span>
-            <span style="font-size:11px"><span style="color:#43e97b">✅${r.d}</span> <span style="color:#ff6b6b">❌${r.y}</span> <span style="color:var(--muted)">⬜${r.b}</span></span>
-            <span style="font-size:18px;font-family:'Bebas Neue',sans-serif;color:${netColor}">${r.net} NET</span>
+        Object.entries(grouped).map(([key, g]) => {
+          const ort = (g.nets.reduce((a,b)=>a+b,0)/g.nets.length).toFixed(2);
+          const son = g.nets[0];
+          const ortColor = '#a89fff';
+          const sonColor = son >= (g.sonToplam||40)*0.7 ? '#43e97b' : son >= (g.sonToplam||40)*0.5 ? '#ffc36b' : '#ff8fa3';
+          return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:8px;flex-wrap:wrap">
+            <span style="flex:1;font-size:13px;font-weight:600">${g.ad}</span>
+            <span style="font-size:11px;color:var(--muted)">${g.nets.length} deneme</span>
+            <span style="font-size:18px;font-family:'Bebas Neue',sans-serif;color:${ortColor}">∅ ${ort}</span>
+            <span style="font-size:11px;color:var(--muted)">son:</span>
+            <span style="font-size:18px;font-family:'Bebas Neue',sans-serif;color:${sonColor}">${son}</span>
           </div>`;
         }).join('') + '</div>';
     }
@@ -4497,7 +4501,23 @@ function bransRenderGecmis() {
     el.innerHTML = '<div style="color:var(--muted);font-size:13px">Henüz kayıt yok.</div>';
     return;
   }
-  el.innerHTML = BRANS_GECMIS.map((r, i) => {
+  // Per-ders averages header
+  const bransGrouped = {};
+  BRANS_GECMIS.forEach(r => {
+    if (!bransGrouped[r.dersKey]) bransGrouped[r.dersKey] = { ad: r.ders, nets: [] };
+    bransGrouped[r.dersKey].nets.push(r.net);
+  });
+  const ortHtml = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)">' +
+    Object.entries(bransGrouped).map(([k,g]) => {
+      const ort = (g.nets.reduce((a,b)=>a+b,0)/g.nets.length).toFixed(2);
+      return `<div style="background:rgba(168,159,255,0.12);border:1px solid rgba(168,159,255,0.3);border-radius:8px;padding:6px 12px;text-align:center">
+        <div style="font-size:10px;color:var(--muted)">${g.ad}</div>
+        <div style="font-size:18px;font-family:'Bebas Neue',sans-serif;color:#a89fff">∅ ${ort}</div>
+        <div style="font-size:9px;color:var(--muted)">${g.nets.length} deneme</div>
+      </div>`;
+    }).join('') + '</div>';
+
+  el.innerHTML = ortHtml + BRANS_GECMIS.map((r, i) => {
     const netColor = r.net >= (r.toplam * 0.7) ? '#43e97b' : r.net >= (r.toplam * 0.5) ? '#ffc36b' : '#ff8fa3';
     return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--border);flex-wrap:wrap">
       <div style="font-size:11px;color:var(--muted);min-width:70px">${r.tarih}</div>
