@@ -4288,7 +4288,9 @@ let _fbConfig = lsGet('fb_config', {
 
 function fbLoginToggle() {
   const m = document.getElementById('fb-modal');
-  m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+  const isOpen = m.style.display === 'flex';
+  m.style.display = isOpen ? 'none' : 'flex';
+  if (isOpen) return;
   if (_fbUser) {
     document.getElementById('fb-logged-out').style.display = 'none';
     document.getElementById('fb-logged-in').style.display  = 'block';
