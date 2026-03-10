@@ -2333,201 +2333,128 @@ function drawBarChart(data) {
 }
 
 function populateTrendDropdown() {
-  const konuSet = new Set();
-  denemeler.forEach(d => { if (d.konular) Object.keys(d.konular).forEach(k => konuSet.add(k)); });
+  const data = lsGet('yks_topics_data', {});
   const sel = document.getElementById('trend-konu-sel');
   if (!sel) return;
   const prev = sel.value;
-  sel.innerHTML = [...konuSet].sort().map(k =>
-    `<option value="${k}">${k}</option>`
-  ).join('');
-  if (prev && konuSet.has(prev)) sel.value = prev;
+  // Build options from TOPICS categories
+  const options = [['','— Ders seç —']];
+  Object.entries(TOPICS).forEach(([key, cats]) => {
+    const label = key === 'tyt' ? 'TYT' : key === 'ayt_mat' ? 'AYT Matematik-Geometri' : 'AYT Fen';
+    Object.entries(cats).forEach(([cat, topics]) => {
+      const hasData = topics.some(t => {
+        const id = key + '_' + t.replace(/[^a-zA-Z0-9]/g,'_');
+        return data[id] && (data[id].y || data[id].d || data[id].b);
+      });
+      options.push([key+'|'+cat, label + ' › ' + cat + (hasData ? ' ✦' : '')]);
+    });
+  });
+  sel.innerHTML = options.map(([v,l]) => `<option value="${v}">${l}</option>`).join('');
+  if (prev) sel.value = prev;
 }
 
 function drawTrendChart() {
   try {
     const sel    = document.getElementById('trend-konu-sel');
-    const modeEl = document.getElementById('trend-mode');
     const noData = document.getElementById('trend-no-data');
-    const legend = document.getElementById('trend-legend');
     const canvas = document.getElementById('trendChart');
-    if (!sel || !modeEl || !canvas) return;
+    if (!sel || !canvas) return;
 
-    const konu = sel.value;
-    const mode = modeEl.value; // 'yanlis' | 'toplam'
-
-    const exams = denemeler.filter(d => d.konular && d.konular[konu]);
-    if (!konu || !exams.length) {
+    const val = sel.value;
+    if (!val) {
       if (noData) noData.style.display = 'block';
       canvas.style.display = 'none';
-      if (legend) legend.innerHTML = '';
+      return;
+    }
+
+    const [topicKey, catName] = val.split('|');
+    const cats = TOPICS[topicKey];
+    if (!cats || !cats[catName]) {
+      if (noData) noData.style.display = 'block';
+      canvas.style.display = 'none';
+      return;
+    }
+
+    const topicList = cats[catName];
+    const data = lsGet('yks_topics_data', {});
+
+    // Build yanlış data per topic
+    const rows = topicList.map(t => {
+      const id = topicKey + '_' + t.replace(/[^a-zA-Z0-9]/g,'_');
+      const saved = data[id] || {};
+      const y = parseFloat(saved.y) || 0;
+      const d = parseFloat(saved.d) || 0;
+      const b = parseFloat(saved.b) || 0;
+      return { name: t, y, d, b, net: Math.max(0, d - y/4) };
+    }).sort((a,b) => b.y - a.y);
+
+    const hasAny = rows.some(r => r.y > 0 || r.d > 0);
+    if (!hasAny) {
+      if (noData) { noData.style.display = 'block'; noData.textContent = 'Bu kategoride henüz veri girilmemiş.'; }
+      canvas.style.display = 'none';
       return;
     }
     if (noData) noData.style.display = 'none';
     canvas.style.display = 'block';
 
-    // Collect kazanım names
-    const kazSet = new Set();
-    exams.forEach(d => Object.keys(d.konular[konu]).forEach(k => kazSet.add(k)));
-    const kazList = [...kazSet];
-
-    const palette = ['#e0e0e0','#a0b4c8','#b8c8a0','#c8b8a0','#a0a8c0','#b0c0b8','#c0b0b8','#b8b0c0'];
-
-    // Canvas size
-    const W = Math.max(440, exams.length * 130 + 80);
-    const H = 280;
-    canvas.width  = W;
+    const BAR_H = 28;
+    const PAD = { t:30, r:60, b:20, l:180 };
+    const W = Math.max(500, canvas.offsetWidth || 500);
+    const H = PAD.t + rows.length * (BAR_H + 6) + PAD.b;
+    canvas.width = W;
     canvas.height = H;
-    canvas.style.width  = W + 'px';
     canvas.style.height = H + 'px';
 
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, W, H);
 
-    const pad = { t:36, r:24, b:70, l:44 };
-    const cw = W - pad.l - pad.r;
-    const ch = H - pad.t - pad.b;
+    const maxY = Math.max(...rows.map(r => r.y), 1);
+    const cw = W - PAD.l - PAD.r;
 
-    // --- "toplam" mode: single line, total yanlis per exam ---
-    if (mode === 'toplam') {
-      const totals = exams.map(d => {
-        const kd = d.konular[konu];
-        return Object.values(kd).reduce((s,v)=>s+(v||0), 0);
-      });
-      const yMax = Math.max(...totals, 4) + 2;
+    // Title
+    ctx.fillStyle = '#a0a0c0';
+    ctx.font = 'bold 12px DM Sans';
+    ctx.textAlign = 'left';
+    ctx.fillText(catName + ' — Yanlış Sayısı (azalan sıra)', PAD.l, 20);
 
-      // grid
-      for (let i=0; i<=4; i++) {
-        const v = Math.round(yMax * i / 4);
-        const y = pad.t + ch * (1 - i/4);
-        ctx.strokeStyle='rgba(255,255,255,0.07)'; ctx.lineWidth=1;
-        ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l+cw, y); ctx.stroke();
-        ctx.fillStyle='#888aaa'; ctx.font='11px sans-serif'; ctx.textAlign='right';
-        ctx.fillText(v, pad.l-6, y+4);
+    rows.forEach((r, i) => {
+      const y = PAD.t + i * (BAR_H + 6);
+      const barW = r.y > 0 ? (r.y / maxY) * cw : 0;
+      const barColor = r.y >= maxY * 0.7 ? '#ff4d4d' : r.y >= maxY * 0.4 ? '#ffc36b' : r.y > 0 ? '#43e97b' : 'rgba(255,255,255,0.08)';
+
+      // Topic name
+      ctx.fillStyle = r.y > 0 ? '#e0e0f0' : '#5a5a7a';
+      ctx.font = (r.y >= maxY * 0.5 ? 'bold ' : '') + '11px DM Sans';
+      ctx.textAlign = 'right';
+      const shortName = r.name.length > 24 ? r.name.slice(0,22)+'…' : r.name;
+      ctx.fillText(shortName, PAD.l - 8, y + BAR_H/2 + 4);
+
+      // Bar background
+      ctx.fillStyle = 'rgba(255,255,255,0.04)';
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(PAD.l, y, cw, BAR_H, 4) : ctx.rect(PAD.l, y, cw, BAR_H);
+      ctx.fill();
+
+      // Bar fill
+      if (barW > 0) {
+        ctx.fillStyle = barColor;
+        ctx.globalAlpha = 0.85;
+        ctx.beginPath();
+        ctx.roundRect ? ctx.roundRect(PAD.l, y, barW, BAR_H, 4) : ctx.rect(PAD.l, y, barW, BAR_H);
+        ctx.fill();
+        ctx.globalAlpha = 1;
       }
 
-      const xStep = exams.length > 1 ? cw/(exams.length-1) : cw/2;
-      const x0    = exams.length === 1 ? pad.l + cw/2 : pad.l;
-
-      // x labels
-      exams.forEach((d,i) => {
-        const x = x0 + i*xStep;
-        ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1;
-        ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t+ch); ctx.stroke();
-        ctx.save();
-        ctx.translate(x, pad.t+ch+8); ctx.rotate(-0.45);
-        ctx.fillStyle='#9090b0'; ctx.font='10px sans-serif'; ctx.textAlign='right';
-        ctx.fillText(d.name.length>14?d.name.slice(0,13)+'…':d.name, 0, 0);
-        ctx.restore();
-      });
-
-      // area fill
-      const pts = totals.map((v,i) => ({ x: x0+i*xStep, y: pad.t+ch*(1-v/yMax), v }));
-      ctx.beginPath(); ctx.moveTo(pts[0].x, pad.t+ch);
-      pts.forEach(p => ctx.lineTo(p.x, p.y));
-      ctx.lineTo(pts[pts.length-1].x, pad.t+ch); ctx.closePath();
-      ctx.fillStyle='rgba(200,200,220,0.10)'; ctx.fill();
-
-      // line
-      ctx.strokeStyle='#d0d0e8'; ctx.lineWidth=3; ctx.lineJoin='round';
-      ctx.beginPath(); pts.forEach((p,i)=> i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y)); ctx.stroke();
-
-      // dots + labels
-      pts.forEach(p => {
-        const isZero = p.v===0;
-        ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, Math.PI*2);
-        ctx.fillStyle = isZero?'#a0e8c8':'#d0d0e8'; ctx.fill();
-        ctx.strokeStyle='#0d0d14'; ctx.lineWidth=2.5; ctx.stroke();
-        ctx.fillStyle = isZero?'#06d6a0': p.v>=5?'#ff4d6d':'#e0e0f8';
-        ctx.font='bold 12px sans-serif'; ctx.textAlign='center';
-        ctx.fillText(isZero?'✓':p.v+'Y', p.x, p.y-13);
-      });
-
-      // title
-      ctx.fillStyle='#c0c0e0'; ctx.font='bold 12px sans-serif'; ctx.textAlign='left';
-      ctx.fillText(konu+' — Toplam Yanlış Trendi', pad.l, 22);
-
-      if (legend) {
-        legend.innerHTML = `<div style="font-size:11px;color:var(--muted)">
-          <span style="color:#06d6a0">✓</span> = sıfır yanlış &nbsp;
-          <span style="color:#ff4d6d">●</span> = 5+ yanlış &nbsp;
-          Kazanımlar: ${kazList.join(' · ')}
-        </div>`;
-      }
-      return;
-    }
-
-    // --- "yanlis" mode: one line per kazanim ---
-    let yMax = 0;
-    exams.forEach(d => { const kd=d.konular[konu]; kazList.forEach(k=>{ const v=kd[k]||0; if(v>yMax)yMax=v; }); });
-    yMax = Math.max(yMax+1, 4);
-
-    for (let i=0; i<=4; i++) {
-      const v = Math.round(yMax*i/4);
-      const y = pad.t + ch*(1-i/4);
-      ctx.strokeStyle='rgba(255,255,255,0.07)'; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+cw,y); ctx.stroke();
-      ctx.fillStyle='#888aaa'; ctx.font='11px sans-serif'; ctx.textAlign='right';
-      ctx.fillText(v, pad.l-6, y+4);
-    }
-
-    const xStep = exams.length>1 ? cw/(exams.length-1) : cw/2;
-    const x0    = exams.length===1 ? pad.l+cw/2 : pad.l;
-
-    exams.forEach((d,i) => {
-      const x = x0+i*xStep;
-      ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,pad.t+ch); ctx.stroke();
-      ctx.save();
-      ctx.translate(x, pad.t+ch+8); ctx.rotate(-0.45);
-      ctx.fillStyle='#9090b0'; ctx.font='10px sans-serif'; ctx.textAlign='right';
-      ctx.fillText(d.name.length>14?d.name.slice(0,13)+'…':d.name, 0, 0);
-      ctx.restore();
+      // Values
+      ctx.fillStyle = r.y > 0 ? '#fff' : '#5a5a7a';
+      ctx.font = 'bold 11px DM Sans';
+      ctx.textAlign = 'left';
+      const label = r.y > 0
+        ? `${r.y} yanlış  |  ${r.d} doğru  |  net: ${r.net.toFixed(1)}`
+        : 'veri girilmedi';
+      ctx.fillText(label, PAD.l + Math.max(barW + 6, 4), y + BAR_H/2 + 4);
     });
-
-    kazList.forEach((kaz, ki) => {
-      const color = palette[ki % palette.length];
-      const pts = exams.map((d,i) => {
-        const v = (d.konular[konu][kaz]!=null) ? d.konular[konu][kaz] : null;
-        if (v===null) return null;
-        return { x: x0+i*xStep, y: pad.t+ch*(1-v/yMax), v };
-      }).filter(Boolean);
-      if (!pts.length) return;
-
-      // area
-      ctx.beginPath(); ctx.moveTo(pts[0].x, pad.t+ch);
-      pts.forEach(p=>ctx.lineTo(p.x,p.y));
-      ctx.lineTo(pts[pts.length-1].x, pad.t+ch); ctx.closePath();
-      ctx.fillStyle=color+'22'; ctx.fill();
-
-      // line
-      ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.lineJoin='round';
-      ctx.beginPath(); pts.forEach((p,j)=>j===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y)); ctx.stroke();
-
-      // dots
-      pts.forEach(p => {
-        const isZero = p.v===0;
-        ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI*2);
-        ctx.fillStyle=isZero?'#06d6a0':color; ctx.fill();
-        ctx.strokeStyle='#0d0d14'; ctx.lineWidth=2; ctx.stroke();
-        ctx.fillStyle=isZero?'#06d6a0':p.v>=3?'#ff4d6d':color;
-        ctx.font='bold 11px sans-serif'; ctx.textAlign='center';
-        ctx.fillText(isZero?'✓':p.v+'Y', p.x, p.y-10);
-      });
-    });
-
-    ctx.fillStyle='#c0c0e0'; ctx.font='bold 12px sans-serif'; ctx.textAlign='left';
-    ctx.fillText(konu+' — Kazanım Bazlı Yanlış Trendi', pad.l, 22);
-
-    if (legend) {
-      legend.innerHTML = kazList.map((k,ki)=>{
-        const c=palette[ki%palette.length];
-        return `<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#ccc;background:rgba(255,255,255,0.06);padding:3px 10px;border-radius:20px">
-          <div style="width:16px;height:3px;background:${c};border-radius:2px"></div>${k}
-        </div>`;
-      }).join('');
-    }
-  } catch(e) { console.error('trend err:', e); }
+  } catch(e) { console.error('drawTrendChart:', e); }
 }
 
 function showGrafikTabTrend() {
@@ -4202,6 +4129,9 @@ function saveTopicMeta(id) {
   if (denEl) data[id].den = denEl.value;
   if (notEl) data[id].not = notEl.value;
   lsSet('yks_topic_meta', data);
+  // Visual feedback
+  const cell = denEl ? denEl.closest('td') : null;
+  if (cell) { cell.style.background='rgba(67,233,123,0.15)'; setTimeout(()=>cell.style.background='',800); }
 }
 
 function loadTopicMeta() {
@@ -4253,6 +4183,7 @@ function loadTopics() {
 buildTopicForms();
 loadTopics();
 loadTopicMeta();
+populateTrendDropdown();
 renderTip([...TIP_DATA].sort((a,b) => (a.r25||a.r24||99999) - (b.r25||b.r24||99999)));
 updateDashboard();
 setTimeout(function(){ populateTrendDropdown(); drawTrendChart(); renderVideos(); renderPresets(); oturumRender(); }, 100);
