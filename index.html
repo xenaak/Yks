@@ -1191,6 +1191,7 @@ function updateDashboard() {
     if (!arr.length) { el.innerHTML = '<div style="color:var(--muted);font-size:13px">Henüz deneme eklenmedi.</div>'; return; }
     const shown = arr.slice().reverse().slice(0,6);
     el.innerHTML = shown.map((d, vi) => {
+      const realIdx = denemeler.indexOf(d);
       const netClass = d.net >= 80 ? 'net-pos' : d.net < 40 ? 'net-neg' : '';
       const trend = vi < shown.length-1 ? (d.net > shown[vi+1].net ? '↑' : d.net < shown[vi+1].net ? '↓' : '→') : '';
       const trendC = trend==='↑' ? 'var(--success)' : trend==='↓' ? 'var(--danger)' : 'var(--muted)';
@@ -1203,7 +1204,10 @@ function updateDashboard() {
           </div>
           ${d.notes ? `<div style="color:var(--muted);font-size:11px;margin-top:2px">${d.notes}</div>` : ''}
         </div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent)" class="${netClass}">${d.net}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent)" class="${netClass}">${d.net}</div>
+          <button onclick="removeDeneme(${realIdx})" style="background:none;border:none;color:#ff6b6b;font-size:16px;cursor:pointer;padding:4px" title="Sil">🗑</button>
+        </div>
       </div>`;
     }).join('');
   }
