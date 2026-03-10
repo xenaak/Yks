@@ -2793,7 +2793,7 @@ function plBulkAtaVeEkle() {
     if (!chk || !chk.checked) return;
     if (row && row.style.display === 'none') return;
     const ytId = v.videoId;
-    if (!VIDEOS[ders]) return;
+    if (!VIDEOS[ders]) VIDEOS[ders] = [];
     VIDEOS[ders].push({ ytId, konu: kazanim, baslik: (v.title || ''), url: 'https://youtu.be/' + ytId });
   lsSet('yks_videos', VIDEOS);
     eklenen++;
@@ -3290,6 +3290,7 @@ function driveSecilenleriEkle() {
   secili.forEach(chk => {
     const f = _driveFiles[+chk.dataset.idx];
     if (!f) return;
+    if (!VIDEOS[ders]) VIDEOS[ders] = [];
     const baslik = f.name.replace(/\.mp4|\..+$/i, '');
     VIDEOS[ders].push({ ytId: f.id, vtype: 'drive', konu, baslik, sure: 0, thumb: 'https://drive.google.com/thumbnail?id=' + f.id + '&sz=w120-h68' });
     eklenen++;
@@ -3402,7 +3403,7 @@ function renderVideos(onlyKey) {
     const empty  = document.getElementById('vempty-' + k);
     if (!konuEl || !listEl) return;
 
-    const vids = VIDEOS[k];
+    const vids = VIDEOS[k] || [];
     if (!vids.length) {
       konuEl.innerHTML = '';
       listEl.innerHTML = '';
