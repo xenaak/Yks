@@ -877,8 +877,7 @@
       <div style="overflow-x:auto">
         <table id="all-topics-table">
           <thead><tr>
-            <th>Konu</th><th>Alan</th><th>Doğru</th><th>Yanlış</th><th>Boş</th>
-            <th>Net</th><th>Başarı %</th><th>Durum</th>
+            <th>Konu</th><th>Alan</th><th>Yanlış</th><th>Boş</th><th>Durum</th>
           </tr></thead>
           <tbody id="all-topics-tbody"></tbody>
         </table>
@@ -1671,21 +1670,20 @@ function analyzeTopics() {
   const wk = document.getElementById('weak-topics-dash');
   wk.innerHTML = critical.slice(0,5).map(r => `
     <div class="prog-wrap">
-      <div class="prog-header"><span>${r.topic}</span><span class="badge badge-red">${r.pct}%</span></div>
-      <div class="prog-bar"><div class="prog-fill" style="width:${r.pct}%;background:var(--danger)"></div></div>
+      <div class="prog-header"><span>${r.topic}</span><span class="badge badge-red">${r.y} yanlış</span></div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${Math.min(r.y*8,100)}%;background:var(--danger)"></div></div>
     </div>`).join('') || '<p style="color:var(--success);font-size:13px">✅ Eksik konu yok!</p>';
 
   // Detay tablosu
   const tbody = document.getElementById('all-topics-tbody');
   if (tbody) {
     tbody.innerHTML = all.map(r => {
-      const sts = r.pct >= 70 ? '<span class="badge badge-green">✅ İyi</span>'
-                : r.pct >= 40 ? '<span class="badge badge-yellow">⚠️ Geliştir</span>'
+      const sts = r.y === 0 ? '<span class="badge badge-green">✅ İyi</span>'
+                : r.y <= 3 ? '<span class="badge badge-yellow">⚠️ Geliştir</span>'
                 : '<span class="badge badge-red">❌ Kritik</span>';
       return `<tr>
         <td><b>${r.topic}</b></td>
         <td style="color:var(--muted);font-size:12px">${r.cat}</td>
-        <td style="color:var(--success)">${r.d}</td>
         <td style="color:var(--danger)">${r.y}</td>
         <td style="color:var(--muted)">${r.b}</td>
         <td><span class="net-tag ${r.net>=3?'net-pos':r.net<1?'net-neg':''}" style="font-size:12px">${r.net.toFixed(2)}</span></td>
